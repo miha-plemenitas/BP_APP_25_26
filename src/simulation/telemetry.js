@@ -20,6 +20,9 @@ export const initialSample = {
   topSpeed: 0,
   topBrake: 0,
   topG: 0,
+  lapBias: 1,
+  paceLabel: "Baseline",
+  paceDelta: 0,
   completedLap: false,
   completedLapSummary: null,
 };
@@ -28,26 +31,51 @@ function getTrack() {
   return racelandKrsko;
 }
 
-function buildSegments(track) {
-  const segmentCount = 9;
-  const speedProfile = [108, 56, 66, 102, 58, 64, 111, 73, 61];
-  const throttleProfile = [94, 14, 40, 90, 15, 34, 96, 74, 46];
-  const brakeProfile = [3, 92, 22, 5, 89, 26, 4, 12, 20];
-  const lateralProfile = [0.18, 0.88, 1.42, 0.24, 1.28, 1.12, 1.5, 0.2, 1.22];
-  const directionProfile = [1, 1, 1, -1, -1, -1, 1, 1, 1];
+function toRadians(degrees) {
+  return (degrees * Math.PI) / 180;
+}
 
-  return Array.from({ length: segmentCount }, (_, index) => {
-    const start = index / segmentCount;
-    const end = (index + 1) / segmentCount;
+function normalizeAngle(angle) {
+  let result = angle;
+
+  while (result <= -Math.PI) {
+    result += Math.PI * 2;
+  }
+
+  while (result > Math.PI) {
+    result -= Math.PI * 2;
+  }
+
+  return result;
+}
+
+function buildSegments(track) {
+  const points = track.outline;
+  const total = points.length;
+  const closed = [...points, points[0], points[1]];
+
+  return points.map((_, index) => {
+    const prev = closed[index];
+    const current = closed[index + 1];
+    const next = closed[index + 2];
+
+    const inbound = Math.atan2(current[1] - prev[1], current[0] - prev[0]);
+    const outbound = Math.atan2(next[1] - current[1], next[0] - current[0]);
+    const turn = normalizeAngle(outbound - inbound);
+    const curvature = clamp(Math.abs(turn) / toRadians(95), 0, 1);
+    const direction = turn === 0 ? 1 : Math.sign(turn);
+    const baseSpeed = 96 - curvature * 34 - (curvature > 0.8 ? 4 : 0);
+
     return {
-      start,
-      end,
-      type: index % 3 === 0 ? "straight" : index % 3 === 1 ? "brake" : "corner",
-      maxSpeed: speedProfile[index],
-      throttle: throttleProfile[index],
-      brake: brakeProfile[index],
-      lateral: lateralProfile[index],
-      direction: directionProfile[index],
+      index,
+      start: index / total,
+      end: (index + 1) / total,
+      curvature,
+      direction,
+      baseSpeed: clamp(baseSpeed, 40, 96),
+      baseThrottle: clamp(88 - curvature * 54, 18, 88),
+      baseBrake: clamp(38 + curvature * 34, 34, 88),
+      baseLateral: clamp(0.16 + curvature * 1.3, 0.16, 1.65),
     };
   });
 }
@@ -56,32 +84,72 @@ function getSegment(progress, segments) {
   return segments.find((segment) => progress >= segment.start && progress < segment.end) ?? segments[0];
 }
 
+function getNextSegment(segment, segments) {
+  return segments[(segment.index + 1) % segments.length];
+}
+
+function getLapPaceFactor(lap) {
+  if (lap <= 1) {
+    return 1;
+  }
+
+  const swing = 0.05 + Math.min(Math.floor((lap - 2) / 2) * 0.008, 0.03);
+  return lap % 2 === 0 ? 1 - swing : 1 + swing;
+}
+
 function segmentIntensity(segment, progress) {
   const span = Math.max(segment.end - segment.start, 0.01);
   const local = clamp((progress - segment.start) / span, 0, 1);
   return Math.sin(local * Math.PI);
 }
 
-function getTelemetryTargets(segment, progress, previousSpeed) {
+function getTelemetryTargets(segment, nextSegment, progress, previousSpeed, lapBias) {
   const intensity = segmentIntensity(segment, progress);
-  const speedDrop = segment.type === "straight" ? 0 : intensity * 8;
-  const targetSpeed = segment.maxSpeed - speedDrop;
-  const speed = previousSpeed === 0 ? targetSpeed * 0.72 : previousSpeed + (targetSpeed - previousSpeed) * 0.2;
-  const brakingDelta = Math.max(previousSpeed - speed, 0);
-  const accelerationDelta = Math.max(speed - previousSpeed, 0);
-  const throttle = clamp(segment.throttle + accelerationDelta * 2.8 - segment.brake * 0.14, 0, 100);
-  const brake = clamp(segment.brake + brakingDelta * 4.6, 0, 100);
-  const lateralG = segment.direction * clamp((speed / 95) * segment.lateral + intensity * 0.18, 0, 1.9);
-  const longitudinalG = clamp(accelerationDelta * 0.07 - brakingDelta * 0.12, -1.35, 0.75);
+  const approach = 1 - Math.abs(0.5 - intensity) * 2;
+  const cornerPressure = clamp(segment.curvature * 0.75 + nextSegment.curvature * 0.25, 0, 1);
+  const targetSpeed = clamp(
+    (segment.baseSpeed - approach * cornerPressure * 8 - nextSegment.curvature * 5) * lapBias,
+    38,
+    96,
+  );
+  const speed = previousSpeed === 0
+    ? targetSpeed * 0.72
+    : previousSpeed + (targetSpeed - previousSpeed) * 0.18;
+  const speedDelta = speed - previousSpeed;
+  const brakingDelta = Math.max(-speedDelta, 0);
+  const accelerationDelta = Math.max(speedDelta, 0);
+  const lapOffset = lapBias - 1;
+  const throttle = clamp(
+    segment.baseThrottle + lapOffset * 20 + accelerationDelta * 1.2 - brakePenalty(brakingDelta) - nextSegment.curvature * 6,
+    0,
+    100,
+  );
+  const brake = clamp(
+    segment.baseBrake - lapOffset * 14 + brakingDelta * 5.8 + nextSegment.curvature * 15 - accelerationDelta * 0.6,
+    0,
+    100,
+  );
+  const lateralG = segment.direction * clamp(
+    (speed / 100) * segment.baseLateral + intensity * segment.curvature * 0.36 + lapOffset * 0.1,
+    0,
+    1.7,
+  );
+  const longitudinalG = clamp(accelerationDelta * 0.058 - brakingDelta * 0.13, -1.3, 0.62);
 
   return { speed, throttle, brake, lateralG, longitudinalG };
+}
+
+function brakePenalty(brakingDelta) {
+  return brakingDelta * 1.2;
 }
 
 export function createNextSample(previous, elapsedSeconds) {
   const track = getTrack();
   const segments = buildSegments(track);
   const segment = getSegment(previous.progress, segments);
-  const targets = getTelemetryTargets(segment, previous.progress, previous.speed);
+  const nextSegment = getNextSegment(segment, segments);
+  const lapBias = getLapPaceFactor(previous.lap);
+  const targets = getTelemetryTargets(segment, nextSegment, previous.progress, previous.speed, lapBias);
   const progressGain = (targets.speed / (track.lengthKm * 3600)) * elapsedSeconds;
   const rawProgress = previous.progress + progressGain;
   const completedLap = rawProgress >= 1;
@@ -117,12 +185,18 @@ export function createNextSample(previous, elapsedSeconds) {
     topSpeed: completedLap ? targets.speed : lapTopSpeed,
     topBrake: completedLap ? targets.brake : lapTopBrake,
     topG: completedLap ? sampleG : lapTopG,
+    lapBias,
+    paceLabel: previous.lap === 1 ? "Baseline" : previous.lap % 2 === 0 ? "Slower" : "Faster",
+    paceDelta: Number(((lapBias - 1) * 100).toFixed(1)),
     completedLap,
     completedLapSummary,
   };
 }
 
 export function createLapSummary(lapState) {
+  const paceLabel = lapState.lap === 1 ? "Baseline" : lapState.lap % 2 === 0 ? "Slower" : "Faster";
+  const paceDelta = ((lapState.lapBias - 1) * 100).toFixed(1);
+
   return {
     lap: lapState.lap,
     time: lapState.lapTime,
@@ -130,5 +204,7 @@ export function createLapSummary(lapState) {
     topBrake: lapState.lapTopBrake,
     topG: lapState.lapTopG,
     averageSpeed: getTrack().lengthKm / (lapState.lapTime / 3600),
+    paceLabel,
+    paceDelta: Number(paceDelta),
   };
 }

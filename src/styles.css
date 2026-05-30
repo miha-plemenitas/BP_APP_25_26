@@ -1,16 +1,17 @@
 :root {
   color-scheme: light;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f7f7f8;
-  color: #09090b;
-  --background: #f7f7f8;
+  background: #f6f3ee;
+  color: #101114;
+  --background: #f6f3ee;
   --card: #ffffff;
-  --card-muted: #f4f4f5;
-  --border: #e4e4e7;
-  --foreground: #09090b;
-  --muted: #71717a;
-  --accent: #7f1d1d;
-  --accent-strong: #991b1b;
+  --card-muted: #f3f0ea;
+  --border: rgba(16, 17, 20, 0.09);
+  --foreground: #101114;
+  --muted: #676a73;
+  --accent: #8b2d22;
+  --accent-strong: #a8382b;
+  --accent-soft: rgba(139, 45, 34, 0.12);
 }
 
 * {
@@ -26,6 +27,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
 }
 
 button,
@@ -63,7 +66,8 @@ button {
   padding: 0 max(24px, calc((100vw - 1480px) / 2));
   background: rgba(255, 255, 255, 0.9);
   border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(12px);
+  backdrop-filter: none;
+  box-shadow: 0 1px 0 rgba(15, 17, 21, 0.04);
 }
 
 .app-brand,
@@ -81,13 +85,36 @@ button {
   cursor: pointer;
   font-weight: 800;
   padding: 0;
+  letter-spacing: -0.02em;
 }
 
 .brand-mark {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.brand-mark-image {
+  display: block;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.app-brand-copy {
+  display: grid;
+  gap: 2px;
+  line-height: 1.05;
+}
+
+.app-brand-copy span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .nav-links {
@@ -98,19 +125,22 @@ button {
   gap: 7px;
   min-height: 36px;
   padding: 0 12px;
-  border-radius: 6px;
-  border: 0;
+  border-radius: 999px;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 650;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
 
 .nav-links button:hover,
 .nav-links button.is-active {
-  background: var(--card-muted);
+  background: rgba(139, 45, 34, 0.08);
   color: var(--accent);
+  border-color: rgba(139, 45, 34, 0.14);
+  transform: translateY(-1px);
 }
 
 .home-hero {
@@ -132,17 +162,39 @@ button {
 .dashboard-header h1 {
   margin: 0;
   color: var(--foreground);
-  font-size: clamp(2.4rem, 5vw, 4.8rem);
-  line-height: 1;
+  font-size: clamp(2.8rem, 5vw, 5.2rem);
+  line-height: 0.95;
   letter-spacing: 0;
+  text-wrap: balance;
 }
 
 .home-lead {
   max-width: 560px;
   margin: 20px 0 28px;
   color: var(--muted);
-  font-size: 1rem;
+  font-size: 1.04rem;
   line-height: 1.7;
+}
+
+.home-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.home-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 45, 34, 0.14);
+  background: #fff;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .eyebrow {
@@ -168,6 +220,7 @@ button {
   font-size: 0.92rem;
   font-weight: 750;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  box-shadow: none;
 }
 
 .ui-button-default {
@@ -192,9 +245,16 @@ button {
 
 .ui-card {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 18px;
   background: var(--card);
-  box-shadow: 0 1px 2px rgba(9, 9, 11, 0.04);
+  box-shadow: 0 2px 8px rgba(15, 17, 21, 0.04);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.ui-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(139, 45, 34, 0.14);
+  box-shadow: 0 6px 18px rgba(15, 17, 21, 0.06);
 }
 
 .ui-card-header {
@@ -218,33 +278,71 @@ button {
 
 .home-preview-card {
   min-height: 420px;
+  overflow: hidden;
 }
 
 .preview-panel {
   min-height: 100%;
   display: grid;
   place-items: center;
-  background:
-    linear-gradient(rgba(9, 9, 11, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(9, 9, 11, 0.05) 1px, transparent 1px);
-  background-size: 32px 32px;
+  background: #fbfaf8;
+  position: relative;
+}
+
+.preview-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.16);
+  opacity: 0.3;
 }
 
 .preview-panel svg {
   width: min(86%, 520px);
   overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 
 .preview-track-line {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
+.preview-track-line-glow {
+  stroke: rgba(139, 45, 34, 0.12);
+  stroke-width: 7;
+}
+
+.preview-track-line-core {
+  stroke: #101114;
+  stroke-width: 3.2;
+}
+
 .preview-car {
-  fill: var(--foreground);
+  fill: var(--accent);
+}
+
+.preview-car-pulse {
+  fill: rgba(139, 45, 34, 0.12);
+}
+
+.preview-copy {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.preview-copy strong {
+  color: var(--accent);
 }
 
 .dashboard-header {
@@ -256,8 +354,21 @@ button {
   gap: 16px;
 }
 
+.dashboard-title {
+  display: grid;
+  gap: 8px;
+}
+
 .dashboard-header h1 {
   font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.dashboard-lead {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.6;
 }
 
 .stats-grid,
@@ -280,6 +391,8 @@ button {
   gap: 8px 12px;
   align-items: center;
   padding: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
 .stat-card svg {
@@ -296,6 +409,28 @@ button {
   grid-column: 1 / -1;
   color: var(--foreground);
   font-size: clamp(1.35rem, 3vw, 1.9rem);
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -12% -35% auto;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(139, 45, 34, 0.06);
+  pointer-events: none;
+}
+
+.stat-card-speed::before,
+.stat-card-gforce::before,
+.stat-card-brake::before,
+.stat-card-lap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .dashboard-grid {
@@ -318,59 +453,45 @@ button {
   width: 100%;
   aspect-ratio: 1.2;
   display: block;
-  border-radius: 6px;
-  background: #fbfbfc;
+  border-radius: 14px;
+  background: #fbfaf8;
   border: 1px solid var(--border);
   overflow: hidden;
 }
 
-.track-bg {
-  fill: #fdfdfd;
-}
-
-.track-outline {
-  fill: none;
-  stroke: #111111;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.car-marker {
-  fill: var(--accent);
-  stroke: #ffffff;
-  stroke-width: 0.7;
-}
-
-.car-pulse {
-  fill: rgba(127, 29, 29, 0.16);
-}
-
-.start-line {
-  stroke: var(--accent);
-  stroke-width: 1.5;
-}
-
-.map-car-marker {
-  width: 28px;
-  height: 28px;
+.track-map--svg {
   display: grid;
   place-items: center;
-  transform: rotate(var(--car-bearing, 0deg));
+}
+
+.track-map--svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.track-route {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.track-route-glow {
+  stroke: rgba(139, 45, 34, 0.12);
+  stroke-width: 8;
+}
+
+.track-route-core {
+  stroke: #101114;
+  stroke-width: 3.2;
+}
+
+.track-marker {
+  fill: var(--accent);
+  stroke: #ffffff;
+  stroke-width: 1.2;
   transform-origin: center;
-}
-
-.map-car-marker span {
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 22px solid var(--accent);
-  filter: drop-shadow(0 1px 2px rgba(9, 9, 11, 0.35));
-}
-
-.maplibregl-ctrl-attrib {
-  font-size: 10px;
 }
 
 .track-meta,
@@ -409,8 +530,8 @@ button {
   width: 100%;
   height: 112px;
   display: block;
-  background: #fafafa;
-  border-radius: 6px;
+  background: #fbfaf8;
+  border-radius: 12px;
   border: 1px solid var(--border);
 }
 
@@ -430,7 +551,7 @@ button {
 }
 
 .gyro-ring {
-  fill: #fafafa;
+  fill: #fbfaf8;
   stroke: #d4d4d8;
   stroke-width: 2;
 }
@@ -476,7 +597,7 @@ button {
 .bar-track {
   height: 10px;
   border-radius: 999px;
-  background: #e4e4e7;
+  background: rgba(15, 17, 21, 0.08);
   overflow: hidden;
 }
 
@@ -517,6 +638,59 @@ th {
 td {
   color: var(--foreground);
   font-weight: 700;
+}
+
+.lap-pace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(15, 17, 21, 0.06);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.lap-pace-baseline {
+  background: rgba(15, 17, 21, 0.06);
+}
+
+.lap-pace-slower {
+  background: rgba(139, 45, 34, 0.12);
+  color: var(--accent);
+}
+
+.lap-pace-faster {
+  background: rgba(46, 125, 50, 0.12);
+  color: #2f6c39;
+}
+
+.lap-panel tbody tr {
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.lap-panel tbody tr:hover {
+  background: rgba(139, 45, 34, 0.02);
+}
+
+.home-preview-card,
+.track-panel,
+.charts-panel,
+.bars-panel,
+.gyro-panel,
+.lap-panel {
+  animation: rise 500ms ease both;
+}
+
+.dashboard-grid > *:nth-child(2),
+.dashboard-grid > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.dashboard-grid > *:nth-child(4) {
+  animation-delay: 140ms;
 }
 
 .error-panel {
@@ -580,5 +754,49 @@ td {
 
   .track-map {
     aspect-ratio: 1;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-1.5%, -1%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.5%, 1%, 0) scale(1.03);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(-0.5deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(0.4deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.25);
+    opacity: 0.18;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
   }
 }

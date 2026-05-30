@@ -1,7 +1,7 @@
-# Raceland Telemetry Plan
+# GridGhost Plan
 
 ## Summary
-Build a React + Vite web app for simulated racing telemetry. The app has a homepage and a dashboard that shows a moving car, telemetry charts, g-force, and lap timing. The current map implementation uses MapLibre with Raceland Krsko as the track location.
+Build a React + Vite web app for simulated racing telemetry. The app has a homepage and a dashboard that shows a moving car, telemetry charts, g-force, lap timing, and an SVG raceline for Raceland Krsko.
 
 ## What Is Done
 - Project scaffolded as a React + Vite app.
@@ -9,18 +9,18 @@ Build a React + Vite web app for simulated racing telemetry. The app has a homep
 - Dashboard added with live simulated telemetry.
 - Stat cards, pedal charts, g-force gauge, and lap table are implemented.
 - The app now uses a single fixed race track for the current session.
-- MapLibre is restored for the map view.
+- Track data now uses `outline_cropped.svg` as the raceline source, and the map/preview are generated from that SVG path.
 - Current map center for Raceland Krsko is:
   - `[15.53519602474387, 45.9308122843152]`
-  - MapLibre uses `[longitude, latitude]` order.
 
 ## Current State
-- The dashboard is working and the build passes.
-- The map still needs the Raceland Krsko track traced more accurately.
-- We currently have a route approximation on the map, not a perfect traced circuit.
+- The dashboard is working in the current workspace.
+- The SVG raceline is now the track display source.
+- The track panel is rendered without MapLibre tiles or background map data.
+- The telemetry is being driven from the track shape so the session feels more coherent.
 
 ## Next Step
-- Trace the Raceland Krsko racetrack properly and replace the approximate route with the traced track.
+- Tune the SVG track rendering and simulation coefficients if the pacing or g-force feel needs adjustment.
 - Best options:
   - manually trace the track into GeoJSON or SVG path data
   - use a GIS tool like `JOSM`, `QGIS`, or `geojson.io`

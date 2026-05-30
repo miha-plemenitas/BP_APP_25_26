@@ -1,6 +1,6 @@
-# BP_APP_25_26
+# GridGhost
 
-Raceland racing telemetry dashboard built with React and Vite.
+GridGhost is a Raceland racing telemetry dashboard built with React and Vite.
 
 ## Run locally
 

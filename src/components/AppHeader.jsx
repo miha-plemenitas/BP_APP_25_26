@@ -4,8 +4,13 @@ export default function AppHeader({ activeView, onNavigate }) {
   return (
     <nav className="app-header">
       <button className="app-brand" onClick={() => onNavigate('home')}>
-        <span className="brand-mark" />
-        <strong>Raceland Telemetry</strong>
+        <span className="brand-mark">
+          <img className="brand-mark-image" src="/icon.svg" alt="" aria-hidden="true" />
+        </span>
+        <span className="app-brand-copy">
+          <strong>GridGhost</strong>
+          <span>Raceland telemetry</span>
+        </span>
       </button>
       <div className="nav-links" aria-label="Main navigation">
         <button

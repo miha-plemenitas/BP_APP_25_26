@@ -6,20 +6,28 @@ import { Card } from "../components/ui/Card.jsx";
 export default function Home({ onStart }) {
   return (
     <main className="home-shell">
-      <section className="home-hero" aria-label="Raceland race start">
+      <section className="home-hero" aria-label="GridGhost Raceland race start">
         <div className="home-copy">
-          <p className="eyebrow">Live simulated telemetry</p>
-          <h1>Raceland</h1>
+          <p className="eyebrow">GridGhost / live simulated telemetry</p>
+          <h1>Raceland Krsko, rendered like a pulse.</h1>
           <p className="home-lead">
-            Track the racing line, driver position, pedal pressure, g-force, and
-            lap performance in one cockpit-style dashboard.
+            Follow the ghost line, watch the marker breathe through the lap,
+            and compare every run with believable pace swings across the same
+            Raceland circuit.
           </p>
-          <Button onClick={onStart}>
-            <Play size={20} />
-            Start Race
-          </Button>
+          <div className="home-actions">
+            <Button onClick={onStart}>
+              <Play size={20} />
+              Start Session
+            </Button>
+            <span className="home-chip">Raceland only</span>
+          </div>
         </div>
         <Card className="home-preview-card">
+          <div className="preview-copy">
+            <span>Track ghost</span>
+            <strong>SVG line source</strong>
+          </div>
           <TrackPreview />
         </Card>
       </section>

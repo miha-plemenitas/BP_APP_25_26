@@ -50,33 +50,37 @@ export default function Dashboard({ onReset }) {
 
   return (
     <main className="dashboard-shell">
-        <header className="dashboard-header">
-          <div>
-            <p className="eyebrow">Raceland live session</p>
-            <h1>Driver Telemetry Dashboard</h1>
-          </div>
-          <Button variant="outline" onClick={onReset}>
-            <RotateCcw size={18} />
-            New Race
-          </Button>
-        </header>
-
-        <div id="overview">
-          <StatCards sample={sample} />
+      <header className="dashboard-header">
+        <div className="dashboard-title">
+          <p className="eyebrow">GridGhost live session</p>
+          <h1>Raceland telemetry grid</h1>
+          <p className="dashboard-lead">
+            A ghost line, live marker, and track-aware telemetry built to feel
+            like one system.
+          </p>
         </div>
+        <Button variant="outline" onClick={onReset}>
+          <RotateCcw size={18} />
+          New Race
+        </Button>
+      </header>
 
-        <section className="dashboard-grid" id="track">
-          <TrackMap sample={sample} />
-          <div className="telemetry-stack" id="telemetry">
-            <TelemetryCharts history={history} />
-            <BarSummary sample={sample} />
-          </div>
-          <GForceGyro sample={sample} />
-        </section>
+      <div id="overview">
+        <StatCards sample={sample} />
+      </div>
 
-        <section id="laps">
-          <LapTable laps={laps} currentSample={sample} />
-        </section>
+      <section className="dashboard-grid" id="track">
+        <TrackMap sample={sample} />
+        <div className="telemetry-stack" id="telemetry">
+          <TelemetryCharts history={history} />
+          <BarSummary sample={sample} />
+        </div>
+        <GForceGyro sample={sample} />
+      </section>
+
+      <section id="laps">
+        <LapTable laps={laps} currentSample={sample} />
+      </section>
     </main>
   );
 }

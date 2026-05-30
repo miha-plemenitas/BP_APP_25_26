@@ -10,7 +10,9 @@ export default function LapTable({ laps, currentSample }) {
       topSpeed: currentSample.topSpeed,
       topBrake: currentSample.topBrake,
       topG: currentSample.topG,
-      averageSpeed: currentSample.speed
+      averageSpeed: currentSample.speed,
+      paceLabel: currentSample.paceLabel ?? "Baseline",
+      paceDelta: currentSample.paceDelta ?? 0
     }
   ];
 
@@ -18,8 +20,8 @@ export default function LapTable({ laps, currentSample }) {
     <Card className="lap-panel">
       <CardHeader>
         <div>
-          <p className="eyebrow">Lap times</p>
-          <CardTitle>Session Sheet</CardTitle>
+          <p className="eyebrow">Lap rhythm</p>
+          <CardTitle>Lap Ledger</CardTitle>
         </div>
         <Flag size={20} />
       </CardHeader>
@@ -30,6 +32,7 @@ export default function LapTable({ laps, currentSample }) {
               <tr>
                 <th>Lap</th>
                 <th>Time</th>
+                <th>Pace</th>
                 <th>Top speed</th>
                 <th>Top brake</th>
                 <th>Top g</th>
@@ -41,6 +44,11 @@ export default function LapTable({ laps, currentSample }) {
                 <tr key={`${lap.lap}-${lap.time}`}>
                   <td>{lap.lap}</td>
                   <td>{formatTime(lap.time)}</td>
+                  <td>
+                    <span className={`lap-pace lap-pace-${lap.paceLabel?.toLowerCase() ?? "baseline"}`}>
+                      {lap.paceLabel ?? "Baseline"}
+                    </span>
+                  </td>
                   <td>{Math.round(lap.topSpeed)} km/h</td>
                   <td>{Math.round(lap.topBrake)}%</td>
                   <td>{lap.topG.toFixed(2)} g</td>
