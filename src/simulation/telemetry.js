@@ -31,6 +31,10 @@ function getTrack() {
   return racelandKrsko;
 }
 
+function getSimulationOutline(track) {
+  return track.reverseOutline ?? [...track.outline].reverse();
+}
+
 function toRadians(degrees) {
   return (degrees * Math.PI) / 180;
 }
@@ -50,7 +54,7 @@ function normalizeAngle(angle) {
 }
 
 function buildSegments(track) {
-  const points = track.outline;
+  const points = getSimulationOutline(track);
   const total = points.length;
   const closed = [...points, points[0], points[1]];
 
@@ -119,16 +123,46 @@ function getTelemetryTargets(segment, nextSegment, progress, previousSpeed, lapB
   const brakingDelta = Math.max(-speedDelta, 0);
   const accelerationDelta = Math.max(speedDelta, 0);
   const lapOffset = lapBias - 1;
-  const throttle = clamp(
-    segment.baseThrottle + lapOffset * 20 + accelerationDelta * 1.2 - brakePenalty(brakingDelta) - nextSegment.curvature * 6,
+  const throttleBias = clamp(
+    segment.baseThrottle * 0.24 + (1 - cornerPressure) * 36 + accelerationDelta * 3.8 + lapOffset * 14,
     0,
     100,
   );
-  const brake = clamp(
-    segment.baseBrake - lapOffset * 14 + brakingDelta * 5.8 + nextSegment.curvature * 15 - accelerationDelta * 0.6,
+  const brakeBias = clamp(
+    segment.baseBrake * 0.22 + cornerPressure * 42 + brakingDelta * 7.2 - lapOffset * 10,
     0,
     100,
   );
+  const accelPhase = clamp((accelerationDelta / 8) + (1 - cornerPressure) * 0.55 + (1 - approach) * 0.2, 0, 1);
+  const brakePhase = clamp((brakingDelta / 8) + cornerPressure * 0.7 + approach * 0.2, 0, 1);
+  let throttle = clamp(
+    throttleBias + accelPhase * 52 - brakePhase * 74 - nextSegment.curvature * 7,
+    0,
+    100,
+  );
+  let brake = clamp(
+    brakeBias + brakePhase * 62 - accelPhase * 58 + nextSegment.curvature * 10,
+    0,
+    100,
+  );
+
+  const overlap = Math.min(throttle, brake);
+  if (overlap > 8) {
+    if (brake >= throttle) {
+      throttle = clamp(throttle - overlap * 0.85, 0, 100);
+    } else {
+      brake = clamp(brake - overlap * 0.85, 0, 100);
+    }
+  }
+
+  if (brake > 18 && throttle > 18) {
+    if (brakePhase >= accelPhase) {
+      throttle = clamp(throttle * 0.35, 0, 100);
+    } else {
+      brake = clamp(brake * 0.35, 0, 100);
+    }
+  }
+
   const lateralG = segment.direction * clamp(
     (speed / 100) * segment.baseLateral + intensity * segment.curvature * 0.36 + lapOffset * 0.1,
     0,
@@ -137,10 +171,6 @@ function getTelemetryTargets(segment, nextSegment, progress, previousSpeed, lapB
   const longitudinalG = clamp(accelerationDelta * 0.058 - brakingDelta * 0.13, -1.3, 0.62);
 
   return { speed, throttle, brake, lateralG, longitudinalG };
-}
-
-function brakePenalty(brakingDelta) {
-  return brakingDelta * 1.2;
 }
 
 export function createNextSample(previous, elapsedSeconds) {

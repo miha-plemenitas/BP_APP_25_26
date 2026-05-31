@@ -8,11 +8,11 @@ export default function Home({ onStart }) {
     <main className="home-shell">
       <section className="home-hero" aria-label="GridGhost Raceland race start">
         <div className="home-copy">
-          <p className="eyebrow">GridGhost / live simulated telemetry</p>
+          <p className="eyebrow">GridGhost / live telemetry</p>
           <h1>Raceland Krsko, rendered like a pulse.</h1>
           <p className="home-lead">
-            Follow the ghost line, watch the marker breathe through the lap,
-            and compare every run with believable pace swings across the same
+            Follow the ghost line, watch the marker breathe through the lap, and
+            compare every run with believable pace swings across the same
             Raceland circuit.
           </p>
           <div className="home-actions">

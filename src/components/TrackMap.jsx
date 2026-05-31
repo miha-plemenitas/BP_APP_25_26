@@ -4,7 +4,7 @@ import { interpolatePose, normalizePoints } from "../utils/trackGeometry.js";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card.jsx";
 
 export default function TrackMap({ sample }) {
-  const trackPoints = useMemo(() => normalizePoints(racelandKrsko.outline), []);
+  const trackPoints = useMemo(() => normalizePoints(racelandKrsko.reverseOutline), []);
   const trackPath = racelandKrsko.previewPath;
   const pose = useMemo(
     () => interpolatePose(trackPoints, sample.progress),

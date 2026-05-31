@@ -5,10 +5,12 @@ import {
   parseSvgPathPoints,
   pointsToPath,
   projectPointsToGeo,
+  reversePoints,
 } from "../utils/trackGeometry.js";
 
 const racelandKrskoPath = extractSvgPathData(outlineSvg);
 const racelandKrskoPoints = parseSvgPathPoints(racelandKrskoPath);
+const racelandKrskoReversePoints = reversePoints(racelandKrskoPoints);
 
 export const racelandKrsko = {
   id: "raceland-krsko",
@@ -19,6 +21,7 @@ export const racelandKrsko = {
   center: [15.535359, 45.93055],
   sourcePath: racelandKrskoPath,
   outline: racelandKrskoPoints,
+  reverseOutline: racelandKrskoReversePoints,
   previewPath: pointsToPath(normalizePoints(racelandKrskoPoints)),
   geometry: {
     type: "LineString",

@@ -117,6 +117,10 @@ export function pointsToPath(points) {
     .join(" ")} Z`;
 }
 
+export function reversePoints(points) {
+  return [...points].reverse();
+}
+
 export function projectPointsToGeo(points, center, lonSpan = 0.0023, latSpan = 0.0017) {
   if (points.length === 0) {
     return [];
