@@ -1,7 +1,7 @@
 import { racelandKrsko } from "../data/tracks.js";
 import { clamp } from "../utils/math.js";
 
-export const TICK_MS = 90;
+export const TICK_MS = 140;
 export const HISTORY_LIMIT = 90;
 
 export const initialSample = {
@@ -107,7 +107,7 @@ function segmentIntensity(segment, progress) {
   return Math.sin(local * Math.PI);
 }
 
-function getTelemetryTargets(segment, nextSegment, progress, previousSpeed, lapBias) {
+function getTelemetryTargets(segment, nextSegment, progress, previousSpeed, previousThrottle, previousBrake, lapBias) {
   const intensity = segmentIntensity(segment, progress);
   const approach = 1 - Math.abs(0.5 - intensity) * 2;
   const cornerPressure = clamp(segment.curvature * 0.75 + nextSegment.curvature * 0.25, 0, 1);
@@ -118,7 +118,7 @@ function getTelemetryTargets(segment, nextSegment, progress, previousSpeed, lapB
   );
   const speed = previousSpeed === 0
     ? targetSpeed * 0.72
-    : previousSpeed + (targetSpeed - previousSpeed) * 0.18;
+    : previousSpeed + (targetSpeed - previousSpeed) * 0.12;
   const speedDelta = speed - previousSpeed;
   const brakingDelta = Math.max(-speedDelta, 0);
   const accelerationDelta = Math.max(speedDelta, 0);
@@ -133,33 +133,43 @@ function getTelemetryTargets(segment, nextSegment, progress, previousSpeed, lapB
     0,
     100,
   );
-  const accelPhase = clamp((accelerationDelta / 8) + (1 - cornerPressure) * 0.55 + (1 - approach) * 0.2, 0, 1);
-  const brakePhase = clamp((brakingDelta / 8) + cornerPressure * 0.7 + approach * 0.2, 0, 1);
-  let throttle = clamp(
+  const accelPhase = clamp((accelerationDelta / 10) + (1 - cornerPressure) * 0.45 + (1 - approach) * 0.16, 0, 1);
+  const brakePhase = clamp((brakingDelta / 10) + cornerPressure * 0.58 + approach * 0.16, 0, 1);
+  const targetThrottle = clamp(
     throttleBias + accelPhase * 52 - brakePhase * 74 - nextSegment.curvature * 7,
     0,
     100,
   );
-  let brake = clamp(
+  const targetBrake = clamp(
     brakeBias + brakePhase * 62 - accelPhase * 58 + nextSegment.curvature * 10,
     0,
     100,
   );
 
+  let throttle = previousThrottle === 0
+    ? targetThrottle * 0.3
+    : previousThrottle + (targetThrottle - previousThrottle) * 0.03;
+  let brake = previousBrake === 0
+    ? targetBrake * 0.26
+    : previousBrake + (targetBrake - previousBrake) * 0.022;
+
+  throttle = clamp(throttle, 0, 100);
+  brake = clamp(brake, 0, 100);
+
   const overlap = Math.min(throttle, brake);
   if (overlap > 8) {
     if (brake >= throttle) {
-      throttle = clamp(throttle - overlap * 0.85, 0, 100);
+      throttle = clamp(throttle - overlap * 0.2, 0, 100);
     } else {
-      brake = clamp(brake - overlap * 0.85, 0, 100);
+      brake = clamp(brake - overlap * 0.2, 0, 100);
     }
   }
 
   if (brake > 18 && throttle > 18) {
     if (brakePhase >= accelPhase) {
-      throttle = clamp(throttle * 0.35, 0, 100);
+      throttle = clamp(throttle * 0.7, 0, 100);
     } else {
-      brake = clamp(brake * 0.35, 0, 100);
+      brake = clamp(brake * 0.7, 0, 100);
     }
   }
 
@@ -179,7 +189,15 @@ export function createNextSample(previous, elapsedSeconds) {
   const segment = getSegment(previous.progress, segments);
   const nextSegment = getNextSegment(segment, segments);
   const lapBias = getLapPaceFactor(previous.lap);
-  const targets = getTelemetryTargets(segment, nextSegment, previous.progress, previous.speed, lapBias);
+  const targets = getTelemetryTargets(
+    segment,
+    nextSegment,
+    previous.progress,
+    previous.speed,
+    previous.throttle,
+    previous.brake,
+    lapBias,
+  );
   const progressGain = (targets.speed / (track.lengthKm * 3600)) * elapsedSeconds;
   const rawProgress = previous.progress + progressGain;
   const completedLap = rawProgress >= 1;
