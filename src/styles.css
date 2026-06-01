@@ -540,36 +540,6 @@ button {
   stroke-width: 1;
 }
 
-.pedal-bars {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.bar-history {
-  display: grid;
-  gap: 10px;
-}
-
-.bar-history-chart {
-  display: grid;
-  grid-template-columns: repeat(18, minmax(0, 1fr));
-  align-items: end;
-  gap: 3px;
-  height: 120px;
-  padding: 10px 10px 8px;
-  background: #fbfaf8;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.bar-history-column {
-  border-radius: 999px 999px 4px 4px;
-  min-height: 3px;
-  opacity: 0.96;
-}
-
 .gyro {
   display: grid;
   place-items: center;
@@ -748,10 +718,6 @@ td {
 
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .pedal-bars {
-    grid-template-columns: 1fr;
   }
 }
 
